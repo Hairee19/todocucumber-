@@ -1,136 +1,49 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-	<modelVersion>4.0.0</modelVersion>
+pipeline {
+    agent any  // Runs on any available agent
+    stages {
+        stage('variables') {
+            steps {
+                sh '''
+                echo "BUILD_NUMBER :: $BUILD_NUMBER"
+                echo "BUILD_ID :: $BUILD_ID"
+                echo "BUILD_DISPLAY_NAME :: $BUILD_DISPLAY_NAME"
+                echo "JOB_NAME :: $JOB_NAME"
+                echo "JOB_BASE_NAME :: $JOB_BASE_NAME"
+                echo "BUILD_TAG :: $BUILD_TAG"
+                echo "EXECUTOR_NUMBER :: $EXECUTOR_NUMBER"
+                echo "NODE_NAME :: $NODE_NAME"
+                echo "NODE_LABELS :: $NODE_LABELS"
+                echo "WORKSPACE :: $WORKSPACE"
+                echo "JENKINS_HOME :: $JENKINS_HOME"
+                echo "JENKINS_URL :: $JENKINS_URL"
+                echo "BUILD_URL :: $BUILD_URL"
+                echo "JOB_URL :: $JOB_URL"
+                '''
+            }
+        }
 
-	<groupId>com.ce.web</groupId>
-	<artifactId>todocucumber</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
-	<packaging>jar</packaging>
+        stage('download source code') {
+            steps {
+                git 'https://github.com/Hairee19/todocucumber-.git'
+            }
+        }
 
-	<name>todocucumber</name>
-	<url>http://maven.apache.org</url>
+        stage('cucumber test automation') {
+            steps {
+                sh 'mvn test verify -Dbase.url="3.90.230.106:8080"'
+            }
+        }
 
-	<properties>
-		<maven.compiler.source>1.8</maven.compiler.source>
-		<maven.compiler.target>1.8</maven.compiler.target>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-	</properties>
+        stage('zip the reports') {
+            steps {
+                sh 'zip -r cu-anil-$BUILD_NUMBER.zip target*'
+            }
+        }
 
-	<dependencies>
-		<!-- https://mvnrepository.com/artifact/io.cucumber/cucumber-junit -->
-		<dependency>
-			<groupId>io.cucumber</groupId>
-			<artifactId>cucumber-junit</artifactId>
-			<version>5.4.0</version>
-			<scope>test</scope>
-		</dependency>
-		<!-- https://mvnrepository.com/artifact/io.cucumber/cucumber-java8 -->
-		<dependency>
-			<groupId>io.cucumber</groupId>
-			<artifactId>cucumber-java8</artifactId>
-			<version>5.4.0</version>
-		</dependency>
-		<dependency>
-			<groupId>io.cucumber</groupId>
-			<artifactId>cucumber-java</artifactId>
-			<version>5.4.0</version>
-		</dependency>
-
-		<!-- https://mvnrepository.com/artifact/io.cucumber/cucumber-core -->
-		<dependency>
-			<groupId>io.cucumber</groupId>
-			<artifactId>cucumber-core</artifactId>
-			<version>5.4.0</version>
-		</dependency>
-		<!-- https://mvnrepository.com/artifact/com.googlecode.totallylazy/totallylazy -->
-		<dependency>
-			<groupId>com.googlecode.totallylazy</groupId>
-			<artifactId>totallylazy</artifactId>
-			<version>1193</version>
-		</dependency>
-
-		<dependency>
-			<groupId>com.squareup.okhttp3</groupId>
-			<artifactId>okhttp</artifactId>
-			<version>4.4.0</version>
-		</dependency>
-		<dependency>
-			<groupId>com.github.mkolisnyk</groupId>
-			<artifactId>cucumber-reports</artifactId>
-			<version>0.0.2</version>
-		</dependency>
-		<!-- <dependency> <groupId>junit</groupId> <artifactId>junit</artifactId> 
-			<version>4.13</version> <scope>test</scope> </dependency> -->
-		<!-- https://mvnrepository.com/artifact/net.masterthought/cucumber-reporting -->
-		<dependency>
-			<groupId>net.masterthought</groupId>
-			<artifactId>cucumber-reporting</artifactId>
-			<version>5.2.2</version>
-		</dependency>
-
-	</dependencies>
-	<build>
-		<plugins>
-			<!-- <plugin> <groupId>com.jolira</groupId> <artifactId>onejar-maven-plugin</artifactId> 
-				<version>1.4.4</version> <executions> <execution> <goals> <goal>one-jar</goal> 
-				</goals> </execution> </executions> </plugin> -->
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-			</plugin>
-			<plugin>
-				<groupId>net.masterthought</groupId>
-				<artifactId>maven-cucumber-reporting</artifactId>
-				<version>3.15.0</version>
-				<executions>
-					<execution>
-						<id>execution</id>
-						<phase>verify</phase>
-						<goals>
-							<goal>generate</goal>
-						</goals>
-						<configuration>
-							<projectName>todo</projectName>
-							<outputDirectory>${project.build.directory}/site/cucumber-reports</outputDirectory>
-							<cucumberOutput>${project.build.directory}/cucumber.json</cucumberOutput>
-							<enableFlashCharts>false</enableFlashCharts>
-							<skippedFails>true</skippedFails>
-						</configuration>
-					</execution>
-				</executions>
-				<configuration>
-					<systemProperties>
-						<base.url>${base.url}</base.url>
-					</systemProperties>
-				</configuration>
-			</plugin>
-		</plugins>
-	</build>
-	<repositories>
-		<repository>
-			<id>repo.bodar.com</id>
-			<url>http://repo.bodar.com</url>
-		</repository>
-
-		<repository>
-			<id>central1</id>
-			<url>http://repo1.maven.org/maven2</url>
-			<snapshots>
-				<enabled>false</enabled>
-			</snapshots>
-			<releases>
-				<enabled>true</enabled>
-			</releases>
-		</repository>
-		<repository>
-			<id>central</id>
-			<name>Central Repository</name>
-			<url>https://repo.maven.apache.org/maven2</url>
-			<layout>default</layout>
-			<snapshots>
-				<enabled>false</enabled>
-			</snapshots>
-		</repository>
-	</repositories>
-</project>
+        stage('upload to nexus') {
+            steps {
+                sh 'curl -v -u admin:CloudEnabled --upload-file cu-hairee-$BUILD_NUMBER.zip http://3.209.12.124:8081/repository/maven-releases/'
+            }
+        }
+    }
+}
